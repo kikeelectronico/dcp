@@ -27,6 +27,13 @@ def execTasks(tasks_queue):
           process.wait()
           print(process.returncode)
 
+def createTaskProcess():
+  global tasks_process
+  if tasks_process is None:
+    tasks_process = multiprocessing.Process(target=execTasks, args=(tasks_queue,))
+    tasks_process.start()
+    #tasks_process.join()
+
 app = FastAPI()
 auth = HTTPBearer()
 
@@ -44,11 +51,7 @@ def pull(image: str = None):
                           
     tasks_queue.put("dapi-pull:" + image)
 
-    global tasks_process
-    if tasks_process is None:
-      tasks_process = multiprocessing.Process(target=execTasks, args=(tasks_queue,))
-      tasks_process.start()
-      #tasks_process.join()
+    createTaskProcess()
     
     return image
 
