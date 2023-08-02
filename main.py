@@ -18,14 +18,10 @@ tasks_process = None
 def execTasks(tasks_queue):
    while True:
       if not tasks_queue.empty():
-        task = tasks_queue.get()
-        print(task)
-        if "dapi-pull" in task:
-          image = task.split(":")[1]
-          command = "docker pull " + image
-          process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-          process.wait()
-          print(process.returncode)
+        command = tasks_queue.get()
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        process.wait()
+          
 
 def createTaskProcess():
   global tasks_process
@@ -43,17 +39,21 @@ def allowAuthenticated(authorization: HTTPBasicCredentials = Depends(auth)):
       raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                           detail="A valid token is needed")
 
-@app.post("/pull", dependencies=[Depends(allowAuthenticated)])
-def pull(image: str = None):
-    if image is None:
+@app.post("/compose/update", dependencies=[Depends(allowAuthenticated)])
+def pull(dir: str = None):
+    if dir is None:
       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                          detail="An image is needded")
+                          detail="A dir is needded")
+    
+    if " " in dir:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                          detail="A proper dir is needded")
                           
-    tasks_queue.put("dapi-pull:" + image)
+    tasks_queue.put("cd " + dir + " && docker-compose pull && docker-compose up -d")
 
     createTaskProcess()
     
-    return image
+    return dir
 
 if __name__ == "__main__":
   uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
