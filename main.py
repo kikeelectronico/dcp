@@ -4,6 +4,7 @@ import uvicorn
 import os
 import multiprocessing
 import subprocess
+import time
 
 # Load env vars
 if os.environ.get("TOKENS", "dev") == "dev":
@@ -21,6 +22,7 @@ def execTasks(tasks_queue):
         command = tasks_queue.get()
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         process.wait()
+      time.sleep(1)
           
 
 def createTaskProcess():
