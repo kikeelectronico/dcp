@@ -51,7 +51,7 @@ def pull(dir: str = None):
       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                           detail="A proper dir is needded")
                           
-    tasks_queue.put("cd " + dir + " && docker-compose pull && docker-compose up -d")
+    tasks_queue.put("cd " + dir + " && docker compose pull && docker compose up -d")
 
     createTaskProcess()
     
